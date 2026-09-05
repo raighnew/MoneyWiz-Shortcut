@@ -1,0 +1,29 @@
+3:104
+¥の
+×
+Transactions
+惠民生鲜超市
+-4.50
+Current
+Status
+Payment
+Time
+Products
+Merchant
+Acquirer
+Payment
+Method
+Payment successful
+2026/9/2 16:34:38
+江苏省南京市江宁区惠民百货超市店
+南京市江宁区惠民百货超市店
+福建星驿支付科技有限公司
+CMB Credit Card（0000）
+Transaction 4200003226202609020000111122
+Order No.
+Merchant
+Order No.
+You can get refund by scanning bar-
+code at supporting merchant
+2026090200001111
+Transaction Services

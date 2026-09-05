@@ -1,0 +1,20 @@
+5:39 ⑦
+<
+Transaction Details
+View all
+每日新鲜
+-12.55
+Transaction successful
+Payment time
+2026-07-11 16:52:10
+Payment
+method
+CMB Credit Card（0000）>
+View debit order
+Item description 每日新鲜
+Acquirer
+广州合利宝支付科技有限公司
+Clearing
+institution
+中国银联股份有限公司
+Morev

@@ -1,0 +1,34 @@
+3:094
+=！！
+×
+Transactions
+拉卡拉
+卖菜小摊
+-8.20
+Current
+Status
+Payment
+Time
+Products
+Merchant
+Acquirer
+Payment
+Method
+Order No.
+Payment successful
+2026/9/5 07:58:56
+江苏省南京市卖菜小摊扫码收款
+商户_张三
+拉卡拉支付股份有限公司
+CMB Credit Card（0000）
+Transaction 4500000367202609051111222233
+Merchant
+Order No.
+202609050000111122223333444455
+66
+Merchant Mini Program
+P 收款宝＞
+Transaction Services
+③ Suspicious
+transaction
+园 Initiate Split Bill

@@ -1,0 +1,32 @@
+3:11
+×
+Transactions
+转账-转给城郊葡萄园
+-60.00
+Current
+Status
+Transfer
+Description
+Transfer
+Time
+Received
+Time
+Payment
+Method
+Transfer
+Order No.
+Transfer has been accepted
+微信转账
+2026/8/27 21:37:32
+2026/8/27 21:38:28
+ICBC Debit Card（1111）
+10000500012026082700001111222
+33
+Transaction Services
+③ Suspicious
+transaction
+t Request for online
+transfer voucher
+• Pinned to chat
+与 View transfers
+records

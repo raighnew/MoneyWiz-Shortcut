@@ -1,0 +1,28 @@
+3:10A
+×
+Transactions
+扫二维码付款-给王小明
+-5.00
+Current
+Status
+Recipient
+Note
+Payment
+Method
+Transfer
+Time
+Transfer
+Order No.
+Payment successful
+二维码收款
+ICBC Debit Card（1111）
+2026/9/5 07:54:49
+100010730120260905000011112222
+33
+Transaction Services
+③ Suspicious
+transaction
+t Request for online
+voucher
+园 Initiate Split Bill
+Recipient Service
