@@ -1,0 +1,20 @@
+{
+  "name": "moneywiz-shortcut",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "iOS Shortcut + Scriptable engine that OCRs Chinese payment screenshots (JD/Taobao/PDD/WeChat/Alipay), categorizes them and saves the expense to MoneyWiz.",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "node scripts/build.mjs",
+    "shortcut": "node scripts/generate-shortcut.mjs",
+    "shortcut:pure": "node scripts/generate-shortcut-pure.mjs",
+    "pretest": "npm run typecheck && npm run build",
+    "test": "node --test \"test/*.test.ts\""
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "esbuild": "^0.28.1",
+    "typescript": "^7.0.2"
+  }
+}
