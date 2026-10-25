@@ -43,6 +43,7 @@ import {
   PLATFORM_RULES,
   SAVE_MODE
 } from '../src/pure/patterns.ts'
+import { encodeCategoryParam } from '../src/moneywiz/index.ts'
 
 const nextUuid = uuidSequence()
 const actions = []
@@ -187,8 +188,6 @@ function pushMerchantChain(patternIndex) {
 }
 pushMerchantChain(0)
 
-const encodeCategoryForUrl = (name) => name.split('/').map(encodeURIComponent).join('/')
-
 // --- 5. Platform detection chain: sets the account, payee AND category fallback --
 
 // The URL scheme requires account names without spaces.
@@ -198,7 +197,7 @@ function pushPlatformChain(ruleIndex) {
   if (ruleIndex >= PLATFORM_RULES.length) {
     pushSetVariableToText('Account', [encodeAccountForUrl(FALLBACK_ACCOUNT)])
     pushSetVariableToText('PayeeSeg', [''])
-    pushSetVariableToText('FallbackCategory', [encodeCategoryForUrl(FALLBACK_CATEGORY_NAME)])
+    pushSetVariableToText('FallbackCategory', [encodeCategoryParam(FALLBACK_CATEGORY_NAME)])
     return
   }
   const rule = PLATFORM_RULES[ruleIndex]
@@ -207,7 +206,7 @@ function pushPlatformChain(ruleIndex) {
   push(ifHasAnyValue(group, matches))
   pushSetVariableToText('Account', [encodeAccountForUrl(rule.account)])
   pushSetVariableToText('PayeeSeg', [`&payee=${encodeURIComponent(rule.payee)}`])
-  pushSetVariableToText('FallbackCategory', [encodeCategoryForUrl(rule.fallbackCategory)])
+  pushSetVariableToText('FallbackCategory', [encodeCategoryParam(rule.fallbackCategory)])
   push(otherwise(group))
   pushPlatformChain(ruleIndex + 1)
   push(endIf(group))
@@ -227,7 +226,7 @@ function pushCategoryChain(ruleIndex) {
   const matches = pushMatch(rule.pattern, ocrText)
   const group = nextUuid()
   push(ifHasAnyValue(group, matches))
-  pushSetVariableToText('Category', [encodeCategoryForUrl(rule.value)])
+  pushSetVariableToText('Category', [encodeCategoryParam(rule.value)])
   push(otherwise(group))
   pushCategoryChain(ruleIndex + 1)
   push(endIf(group))

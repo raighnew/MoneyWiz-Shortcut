@@ -12,7 +12,7 @@ test('JD screenshot end to end: parse, categorize, build URL', () => {
   assert.equal(result.category, 'Baby')
   assert.equal(result.account, config.accounts.jd)
   assert.ok(result.url!.startsWith('moneywiz://expense?amount=93.00'))
-  assert.ok(result.url!.includes('category=Baby'))
+  assert.ok(result.url!.includes('category=Shopping/Baby'))
   assert.ok(result.url!.includes('date=2026-07-09%2017%3A56%3A58'))
   assert.ok(result.summary!.includes('¥93'))
 })

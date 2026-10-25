@@ -30,19 +30,20 @@ export const config: Config = {
     alipay: 'Alipay'
   },
 
-  // Maps internal category keys to your MoneyWiz category names — these must
+  // Maps internal category keys to your MoneyWiz categories — these must
   // exist in MoneyWiz with EXACTLY these names. Use "Parent/Child" for
-  // subcategories per the URL scheme (e.g. 'Dining Out/Coffee'); a literal
-  // slash INSIDE a category name (like "Gas/Fuel") cannot be addressed —
-  // rename such categories in MoneyWiz (e.g. "Gas & Fuel").
+  // subcategories per the URL scheme. A literal slash INSIDE a category name
+  // (like "Gas/Fuel") cannot be addressed — MoneyWiz does not decode %2F —
+  // so either rename that category in MoneyWiz or map to its parent and pick
+  // the subcategory by hand on the review screen (save=false).
   categoryNames: {
-    Baby: 'Baby',
-    Pet: 'Pet',
-    Coffee: 'Coffee',
-    GasFuel: 'Gas & Fuel',
-    Transport: 'Transport',
-    Groceries: 'Groceries',
-    DiningOut: 'Dining Out',
+    Baby: 'Shopping/Baby',
+    Pet: 'Shopping/Pets',
+    Coffee: 'Food & Dining/Coffee',
+    GasFuel: 'Transportation/GasFuel',
+    Transport: 'Transportation/Public Transportation',
+    Groceries: 'Shopping/Groceries',
+    DiningOut: 'Food & Dining/Dining Out',
     Shopping: 'Shopping'
   }
 }

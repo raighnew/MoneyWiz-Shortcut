@@ -58,28 +58,28 @@ const pickPlatform = (text: string) =>
 const CASES = [
   // 实付款 合计 ¥93 (total actually paid) wins over the per-item 到手¥88.
   // The storefront line becomes the description; payee is the platform name.
-  { fixture: 'jd', amount: '93', date: '2026-07-09 17:56:58', description: '佳美盒KAMIBAKO海外专营店', category: 'Baby', account: 'WeChat', payee: 'JD' },
+  { fixture: 'jd', amount: '93', date: '2026-07-09 17:56:58', description: '佳美盒KAMIBAKO海外专营店', category: 'Shopping/Baby', account: 'WeChat', payee: 'JD' },
   // Real Vision OCR output: label/value columns split into separate blocks,
   // 合计 misread as 合汁, a lone notification badge "3", full-width ＞.
-  { fixture: 'jd-real', amount: '93', date: '2026-07-09 17:56:58', description: '佳美盒KAMIBAKO海外专营店', category: 'Baby', account: 'WeChat', payee: 'JD' },
-  { fixture: 'taobao', amount: '59.00', date: '2026-07-05 10:20:30', description: '天猫超市', category: 'Groceries', account: 'Alipay', payee: 'Taobao' },
-  { fixture: 'pdd', amount: '29.90', date: '2026-07-08 20:11:05', description: '好孩子官方旗舰店', category: 'Baby', account: 'WeChat', payee: 'PDD' },
+  { fixture: 'jd-real', amount: '93', date: '2026-07-09 17:56:58', description: '佳美盒KAMIBAKO海外专营店', category: 'Shopping/Baby', account: 'WeChat', payee: 'JD' },
+  { fixture: 'taobao', amount: '59.00', date: '2026-07-05 10:20:30', description: '天猫超市', category: 'Shopping/Groceries', account: 'Alipay', payee: 'Taobao' },
+  { fixture: 'pdd', amount: '29.90', date: '2026-07-08 20:11:05', description: '好孩子官方旗舰店', category: 'Shopping/Baby', account: 'WeChat', payee: 'PDD' },
   // Real Vision OCR of a PDD order: 实付：¥17.9（免运费）, 折扣店 storefront
   // with trailing badge text, Apple Pay payment, en-dash-free timestamps.
   { fixture: 'pdd-real', amount: '17.9', date: '2026-06-21 06:59:08', description: '华宇软水盐折扣店', category: null, account: 'WeChat', payee: 'PDD' },
-  { fixture: 'wechat', amount: '28.50', date: '2026-07-10 12:03:22', description: '美团平台商户', category: 'Dining Out', account: 'WeChat', payee: 'WeChat' },
-  { fixture: 'alipay', amount: '15.60', date: '2026-07-08 09:15:30', description: '滴滴出行-快车', category: 'Transport', account: 'Alipay', payee: 'Alipay' },
+  { fixture: 'wechat', amount: '28.50', date: '2026-07-10 12:03:22', description: '美团平台商户', category: 'Food & Dining/Dining Out', account: 'WeChat', payee: 'WeChat' },
+  { fixture: 'alipay', amount: '15.60', date: '2026-07-08 09:15:30', description: '滴滴出行-快车', category: 'Transportation/Public Transportation', account: 'Alipay', payee: 'Alipay' },
   // English-locale Alipay Transaction Details page, real Vision OCR: bare
   // "-12.55" amount, "Payment method" split across two lines, merchant via
   // the "Item description" row.
-  { fixture: 'alipay-en', amount: '12.55', date: '2026-07-11 16:52:10', description: '每日新鲜', category: 'Groceries', account: 'Alipay', payee: 'Alipay' },
+  { fixture: 'alipay-en', amount: '12.55', date: '2026-07-11 16:52:10', description: '每日新鲜', category: 'Shopping/Groceries', account: 'Alipay', payee: 'Alipay' },
   // English-locale WeChat bills, real Vision OCR: the page never says
   // "WeChat", dates arrive as 2026/9/5, and the merchant is only readable as
   // the line sitting above the bare amount.
-  { fixture: 'wechat-en-merchant', amount: '8.20', date: '2026-09-05 07:58:56', description: '卖菜小摊', category: 'Groceries', account: 'WeChat', payee: 'WeChat' },
+  { fixture: 'wechat-en-merchant', amount: '8.20', date: '2026-09-05 07:58:56', description: '卖菜小摊', category: 'Shopping/Groceries', account: 'WeChat', payee: 'WeChat' },
   { fixture: 'wechat-en-qr-transfer', amount: '5.00', date: '2026-09-05 07:54:49', description: '扫二维码付款-给王小明', category: null, account: 'WeChat', payee: 'WeChat' },
   { fixture: 'wechat-en-transfer', amount: '60.00', date: '2026-08-27 21:37:32', description: '转账-转给城郊葡萄园', category: null, account: 'WeChat', payee: 'WeChat' },
-  { fixture: 'wechat-en-barcode', amount: '4.50', date: '2026-09-02 16:34:38', description: '惠民生鲜超市', category: 'Groceries', account: 'WeChat', payee: 'WeChat' }
+  { fixture: 'wechat-en-barcode', amount: '4.50', date: '2026-09-02 16:34:38', description: '惠民生鲜超市', category: 'Shopping/Groceries', account: 'WeChat', payee: 'WeChat' }
 ] as const
 
 for (const expected of CASES) {
@@ -141,8 +141,8 @@ test('unrecognized text yields no amount and the fallbacks', () => {
 test('the category fallback follows the detected platform', () => {
   const fallbackFor = (fixture: string) =>
     pickPlatform(loadFixture(fixture))?.fallbackCategory ?? FALLBACK_CATEGORY_NAME
-  assert.equal(fallbackFor('wechat-en-qr-transfer'), 'Groceries')
-  assert.equal(fallbackFor('alipay-en'), 'Groceries')
+  assert.equal(fallbackFor('wechat-en-qr-transfer'), 'Shopping/Groceries')
+  assert.equal(fallbackFor('alipay-en'), 'Shopping/Groceries')
   assert.equal(fallbackFor('jd-real'), 'Shopping')
   assert.equal(fallbackFor('pdd-real'), 'Shopping')
 })

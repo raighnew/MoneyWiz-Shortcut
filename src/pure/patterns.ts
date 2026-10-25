@@ -75,7 +75,7 @@ export const MERCHANT_PATTERNS: readonly string[] = [
 export const MERCHANT_NOISE_PATTERN = '全球购|复制|[>›〉＞]'
 
 export interface KeywordRule {
-  /** Value written into the MoneyWiz URL. */
+  /** Category path written into the MoneyWiz URL (via encodeCategoryParam). */
   value: string
   pattern: string
 }

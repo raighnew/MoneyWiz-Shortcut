@@ -5,13 +5,20 @@ export interface ExpenseRequest {
   account: string
   currency?: string
   payee?: string | null
-  /** Hierarchy with slashes, e.g. 'Shopping/Online'. */
+  /** Hierarchy with slashes, e.g. 'Shopping/Baby'. */
   category?: string | null
   description?: string | null
   memo?: string | null
   /** 'yyyy-MM-dd HH:mm:ss' */
   date?: string | null
   save?: boolean
+}
+
+// Slashes separating the hierarchy must survive encoding. MoneyWiz does NOT
+// decode %2F back into a name (verified on-device), so a category whose own
+// name contains a slash cannot be addressed at all — see config.categoryNames.
+export function encodeCategoryParam(category: string): string {
+  return category.split('/').map(encodeURIComponent).join('/')
 }
 
 export function buildExpenseUrl(expense: ExpenseRequest): string {
@@ -25,10 +32,7 @@ export function buildExpenseUrl(expense: ExpenseRequest): string {
   add('account', expense.account.replace(/\s+/g, ''))
   add('currency', expense.currency)
   add('payee', expense.payee)
-  if (expense.category) {
-    // Slashes separate the category hierarchy and must survive encoding.
-    params.push(`category=${expense.category.split('/').map(encodeURIComponent).join('/')}`)
-  }
+  if (expense.category) params.push(`category=${encodeCategoryParam(expense.category)}`)
   add('description', expense.description)
   add('memo', expense.memo)
   add('date', expense.date)
