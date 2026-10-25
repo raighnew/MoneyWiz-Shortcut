@@ -2,7 +2,7 @@
 
 Turn Chinese payment screenshots into MoneyWiz transactions with one tap.
 
-Share a screenshot of an order/bill from **JD (京东), Taobao (淘宝/天猫), PDD (拼多多), WeChat Pay (微信支付) or Alipay (支付宝)** to an iOS Shortcut. The Shortcut OCRs the image, a Scriptable script (built from this repo) detects the platform, extracts the payment details, picks a category — **Baby / Food / Transport / Shopping** — and saves the expense to MoneyWiz via its URL scheme.
+Share a screenshot of an order/bill from **JD (京东), Taobao (淘宝/天猫), PDD (拼多多), WeChat Pay (微信支付) or Alipay (支付宝)** to an iOS Shortcut. The Shortcut OCRs the image, a Scriptable script (built from this repo) detects the platform, extracts the payment details, picks a category via keyword rules (mapped to your MoneyWiz categories in `src/config.ts`) and saves the expense to MoneyWiz via its URL scheme.
 
 ```
 Screenshot ──▶ Shortcut (Extract Text from Image, on-device OCR)
@@ -11,7 +11,7 @@ Screenshot ──▶ Shortcut (Extract Text from Image, on-device OCR)
               Scriptable: dist/MoneyWiz.js
                   ├── Parser    detect JD / Taobao / PDD / WeChat / Alipay,
                   │             extract amount·merchant·product·date·order id
-                  ├── Category  keyword rules → Baby / Food / Transport / Shopping
+                  ├── Category  keyword rules → MoneyWiz category (src/config.ts)
                   └── MoneyWiz  build moneywiz://expense?... URL
                   │ result dictionary (summary + url)
                   ▼
@@ -23,7 +23,7 @@ Screenshot ──▶ Shortcut (Extract Text from Image, on-device OCR)
 ```
 src/
 ├── parser/         platform parsers (jd, taobao, pdd, wechat, alipay + shared utils)
-├── category/       keyword rules for Baby / Food / Transport / Shopping
+├── category/       keyword rules mapping purchases onto the categories in config.ts
 ├── moneywiz/       moneywiz:// URL scheme builder
 ├── config.ts       ⚙️ your accounts, currency, category names
 └── main.ts         Scriptable entry point
@@ -48,7 +48,7 @@ TypeScript 7 checks the source, esbuild bundles it, Node 24 runs the `.ts` tests
 Edit `src/config.ts`:
 
 - `accounts` — which MoneyWiz account each platform books to (names must match MoneyWiz exactly; spaces are stripped automatically as the scheme requires).
-- `categoryNames` — your MoneyWiz category names for Baby/Food/Transport/Shopping (`Parent/Child` works). **The categories must already exist in MoneyWiz.**
+- `categoryNames` — maps each internal category key to your MoneyWiz category (`Parent/Child` for subcategories). **The categories must already exist in MoneyWiz with exactly these names.**
 - `save` — `true` saves silently; `false` opens MoneyWiz's prefilled New Expense screen instead.
 
 Then build & test:
@@ -78,13 +78,22 @@ Photos, or tap the shortcut → native photo picker → ~150 built-in actions �
 Match Text regex chains → keyword categorization → URL. It never asks for
 input: amount priority is 实付 (same line, last number) → 合计 → OCR-split
 实付 → 价格/付款/金额 (¥ required) → standalone amount line; unmatched
-categories silently fall back to Shopping; anything the OCR misses stays
-empty. With `save=false` (the default in `src/config.ts`) MoneyWiz opens its
+categories silently fall back per platform (Groceries for WeChat/Alipay,
+Shopping otherwise); anything the OCR misses stays empty. With `save=false` (the default in `src/config.ts`) MoneyWiz opens its
 prefilled New Expense screen, so reviewing and correcting happens there — one
 tap to save. The regexes live in `src/pure/patterns.ts` (tested by
 `test/pure.test.ts`). Trade-offs vs the Scriptable engine: no product-title
 description, a cruder payee line, and dates take the first full timestamp on
 screen.
+
+**AI variant (`npm run shortcut:pure:ai` → dist/MoneyWiz-Pure-AI.shortcut):**
+the pure variant plus an Apple Intelligence fallback — when no category
+keyword matches, the on-device model (the iOS 26+ **Use Model** action) reads
+the OCR text and picks one of the configured categories; its reply is
+validated against the known names, so an unrecognized answer still falls back
+per platform. Requires an Apple Intelligence device (iPhone 15 Pro or later)
+with Apple Intelligence enabled. Keyword matches never consult the model, so
+common purchases stay instant and deterministic.
 
 **Scriptable variant:** richer parsing (the full TypeScript engine from
 `src/`), but requires the free Scriptable app plus the MoneyWiz script
@@ -143,11 +152,14 @@ WeChat and Alipay in English are supported alongside the Chinese UI. WeChat's En
 ## Development
 
 ```sh
-npm run typecheck      # TypeScript 7, no emit
-npm run build          # bundle dist/MoneyWiz.js with esbuild
-npm run shortcut       # generate + sign the Scriptable variant (macOS only)
-npm run shortcut:pure  # generate + sign the pure built-in-actions variant
-npm test               # typecheck + build + node --test (runs .ts directly)
+npm run typecheck           # TypeScript 7, no emit
+npm run build               # bundle dist/MoneyWiz.js with esbuild
+npm run shortcut            # generate + sign the Scriptable variant (macOS only)
+npm run shortcut:pure       # generate + sign the pure built-in-actions variant
+npm run shortcut:pure:ai    # pure variant + Apple Intelligence category fallback (iOS 26+)
+npm run shortcut:pure:debug # pure variant that shows + copies the URL instead of opening it
+npm run shortcut:debug      # shortcut that shows + copies the raw OCR text (for fixtures)
+npm test                    # typecheck + build + node --test (runs .ts directly)
 ```
 
-To support a new platform, add `src/parser/<name>.ts` implementing `PaymentParser` (see `src/types.ts`), register it in `src/parser/index.ts`, and add a fixture + test. If a real screenshot parses wrongly, paste its OCR text (Shortcuts → Extract Text from Image → Quick Look) into a fixture and adjust the parser until the test passes.
+To support a new platform, add `src/parser/<name>.ts` implementing `PaymentParser` (see `src/types.ts`), register it in `src/parser/index.ts`, and add a fixture + test. If a real screenshot parses wrongly, paste its OCR text into a fixture and adjust the parser until the test passes — `npm run shortcut:debug` builds a Shortcut that shows the raw OCR text and copies it to the clipboard.

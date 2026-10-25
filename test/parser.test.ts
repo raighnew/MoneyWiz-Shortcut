@@ -59,7 +59,7 @@ test('Alipay bill detail screenshot', () => {
   assert.equal(payment.amount, 15.6)
   assert.equal(payment.date, '2026-07-08 09:15:30')
   assert.equal(payment.orderId, '2026070822001412341234567890')
-  assert.equal(payment.hintCategory, 'Transport')
+  assert.equal(payment.hintCategory, 'PublicTransport')
 })
 
 test('English-locale WeChat merchant bill', () => {
@@ -129,6 +129,21 @@ test('a PDD order paid via WeChat is still detected as PDD', () => {
   const payment = parsePayment(loadFixture('pdd'))
   assert.ok(payment)
   assert.equal(payment.platform, 'pdd')
+})
+
+test('a lone notification badge digit near the top is never the amount', () => {
+  const payment = parsePayment([
+    '账单详情',
+    '3',
+    '惠民生鲜超市',
+    '-4.50',
+    '当前状态 支付成功',
+    '微信支付',
+    '支付时间 2026-09-02 16:34:38'
+  ].join('\n'))
+  assert.ok(payment)
+  assert.equal(payment.amount, 4.5)
+  assert.equal(payment.merchant, '惠民生鲜超市')
 })
 
 test('unrelated text is rejected', () => {

@@ -5,7 +5,7 @@ export type CategoryKey =
   | 'Pet'
   | 'Coffee'
   | 'GasFuel'
-  | 'Transport'
+  | 'PublicTransport'
   | 'Groceries'
   | 'DiningOut'
   | 'Shopping'

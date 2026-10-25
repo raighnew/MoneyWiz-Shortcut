@@ -6,9 +6,9 @@ import {
   dateAfterLabels,
   firstDateAnywhere,
   firstLongDigitRun,
+  merchantAboveStandaloneAmount,
   pairDetachedLabelColumn,
   valueAfterLabels,
-  cleanMerchantName,
   type WeightedKeyword
 } from './utils.ts'
 
@@ -39,7 +39,6 @@ const KEYWORDS: readonly WeightedKeyword[] = [
 ]
 
 const HEADER_NOISE_PATTERN = /^(账单详情|账单|详情|返回|完成|Transactions|×)$/
-const BARE_AMOUNT_PATTERN = /^[-−–]?\s*[¥￥]?\s*\d[\d,]*(?:\.\d{1,2})?\s*元?$/
 const ORDER_NUMBER_PATTERN = /(\d{10,})/
 const MIN_ORDER_NUMBER_DIGITS = 15
 
@@ -62,16 +61,6 @@ const ENGLISH_ROW_LABELS: readonly string[] = [
   'Order No.'
 ]
 
-// The merchant display name sits directly above the big amount on the bill
-// detail page; 商户全称 is the registered company name, kept as fallback.
-function displayNameAboveAmount(lines: string[]): string | null {
-  const amountIndex = lines.findIndex(line => BARE_AMOUNT_PATTERN.test(line))
-  for (let i = amountIndex - 1; i >= 0; i--) {
-    if (!HEADER_NOISE_PATTERN.test(lines[i]!)) return cleanMerchantName(lines[i]!)
-  }
-  return null
-}
-
 export const wechat: PaymentParser = {
   platform: 'wechat',
   label: '微信支付',
@@ -90,7 +79,9 @@ export const wechat: PaymentParser = {
       return null
     }
 
-    const merchant = displayNameAboveAmount(lines)
+    // The display name above the amount beats 商户全称 (the registered
+    // company name) and the English Merchant row, which are kept as fallbacks.
+    const merchant = merchantAboveStandaloneAmount(lines, HEADER_NOISE_PATTERN)
       ?? valueAfterLabels(lines, ['商户全称', '收款方'], /(.+)/)
       ?? rowValue('Merchant')
 

@@ -9,6 +9,9 @@
     "build": "node scripts/build.mjs",
     "shortcut": "node scripts/generate-shortcut.mjs",
     "shortcut:pure": "node scripts/generate-shortcut-pure.mjs",
+    "shortcut:pure:ai": "node scripts/generate-shortcut-pure.mjs --ai",
+    "shortcut:pure:debug": "node scripts/generate-shortcut-pure.mjs --debug",
+    "shortcut:debug": "node scripts/generate-shortcut-debug.mjs",
     "pretest": "npm run typecheck && npm run build",
     "test": "node --test \"test/*.test.ts\""
   },

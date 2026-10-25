@@ -4,9 +4,8 @@ import {
   amountAfterLabels,
   dateAfterLabels,
   firstDateAnywhere,
+  storefrontAndProductTitle,
   valueAfterLabels,
-  cleanMerchantName,
-  productTitleAfter,
   type WeightedKeyword
 } from './utils.ts'
 
@@ -36,11 +35,8 @@ export const jd: PaymentParser = {
   },
 
   parse(lines) {
-    const foundIndex = lines.findIndex(line => MERCHANT_PATTERN.test(line))
-    const merchantIndex = foundIndex >= 0 ? foundIndex : 0
     return {
-      merchant: cleanMerchantName(lines[merchantIndex] ?? ''),
-      description: productTitleAfter(lines, merchantIndex, TITLE_STOP_PATTERN),
+      ...storefrontAndProductTitle(lines, MERCHANT_PATTERN, TITLE_STOP_PATTERN),
       // 实付款/合计 is the total actually paid; the per-item 到手 price is
       // only a fallback.
       amount: amountAfterLabels(lines, ['实付款'], DETACHED_COLUMN_LOOKAHEAD_LINES)

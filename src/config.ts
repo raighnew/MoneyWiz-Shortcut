@@ -41,7 +41,7 @@ export const config: Config = {
     Pet: 'Shopping/Pets',
     Coffee: 'Food & Dining/Coffee',
     GasFuel: 'Transportation/GasFuel',
-    Transport: 'Transportation/Public Transportation',
+    PublicTransport: 'Transportation/Public Transportation',
     Groceries: 'Shopping/Groceries',
     DiningOut: 'Food & Dining/Dining Out',
     Shopping: 'Shopping'

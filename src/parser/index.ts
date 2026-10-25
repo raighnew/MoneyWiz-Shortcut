@@ -6,6 +6,9 @@ import { pdd } from './pdd.ts'
 import { wechat } from './wechat.ts'
 import { alipay } from './alipay.ts'
 
+// Detection relies on each parser's weighted KEYWORDS; the pure-Shortcut
+// variant keeps a hand-synced regex counterpart in src/pure/patterns.ts
+// (PLATFORM_PATTERNS) — tune both when adding platform markers.
 const PARSERS: readonly PaymentParser[] = [jd, taobao, pdd, wechat, alipay]
 
 // A screenshot may mention several platforms (a JD order paid via WeChat),

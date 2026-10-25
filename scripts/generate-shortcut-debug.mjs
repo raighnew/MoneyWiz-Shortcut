@@ -3,6 +3,7 @@
 // so failing screenshots can be turned into fixtures for the pattern tests.
 import {
   action,
+  actionOutput,
   attachment,
   emitSignedShortcut,
   imageInputActions,
@@ -10,7 +11,6 @@ import {
   uuidSequence,
   workflow
 } from './shortcut-lib.mjs'
-import { actionOutput } from './shortcut-lib.mjs'
 
 const nextUuid = uuidSequence()
 const actions = []

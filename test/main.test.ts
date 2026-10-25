@@ -20,7 +20,7 @@ test('JD screenshot end to end: parse, categorize, build URL', () => {
 test('Alipay screenshot end to end uses the alipay account', () => {
   const result = processOcrText(loadFixture('alipay'))
   assert.equal(result.ok, true)
-  assert.equal(result.category, 'Transport')
+  assert.equal(result.category, 'PublicTransport')
   assert.equal(result.account, config.accounts.alipay)
 })
 

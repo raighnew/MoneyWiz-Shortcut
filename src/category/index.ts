@@ -1,5 +1,5 @@
 import type { CategoryKey, ParsedPayment, Platform } from '../types.ts'
-import { CATEGORY_KEYWORDS, FALLBACK_CATEGORY, PLATFORM_FALLBACK_CATEGORIES } from './keywords.ts'
+import { CATEGORY_KEYWORDS, FALLBACK_CATEGORY_KEY, PLATFORM_FALLBACK_CATEGORIES } from './keywords.ts'
 
 export function categorize(payment: ParsedPayment, platform?: Platform): CategoryKey {
   const haystack = [payment.description, payment.merchant]
@@ -12,5 +12,5 @@ export function categorize(payment: ParsedPayment, platform?: Platform): Categor
   }
   return payment.hintCategory
     ?? (platform && PLATFORM_FALLBACK_CATEGORIES[platform])
-    ?? FALLBACK_CATEGORY
+    ?? FALLBACK_CATEGORY_KEY
 }

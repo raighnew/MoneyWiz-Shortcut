@@ -5,8 +5,8 @@ import {
   bareAmountNearTop,
   dateAfterLabels,
   firstDateAnywhere,
+  merchantAboveStandaloneAmount,
   valueAfterLabels,
-  cleanMerchantName,
   type WeightedKeyword
 } from './utils.ts'
 
@@ -22,7 +22,6 @@ const KEYWORDS: readonly WeightedKeyword[] = [
 ]
 
 const HEADER_NOISE_PATTERN = /^(账单详情|账单|详情|返回|完成)$/
-const BARE_AMOUNT_PATTERN = /^[-−–]?\s*[¥￥]?\s*\d[\d,]*(?:\.\d{1,2})?\s*元?$/
 
 // Alipay's own bill category row (账单分类) maps onto our categories.
 const BILL_CATEGORY_HINTS: readonly (readonly [string, CategoryKey])[] = [
@@ -34,17 +33,9 @@ const BILL_CATEGORY_HINTS: readonly (readonly [string, CategoryKey])[] = [
   ['生鲜', 'Groceries'],
   ['加油', 'GasFuel'],
   ['充电', 'GasFuel'],
-  ['交通', 'Transport'],
-  ['出行', 'Transport']
+  ['交通', 'PublicTransport'],
+  ['出行', 'PublicTransport']
 ]
-
-function displayNameAboveAmount(lines: string[]): string | null {
-  const amountIndex = lines.findIndex(line => BARE_AMOUNT_PATTERN.test(line))
-  for (let i = amountIndex - 1; i >= 0; i--) {
-    if (!HEADER_NOISE_PATTERN.test(lines[i]!)) return cleanMerchantName(lines[i]!)
-  }
-  return null
-}
 
 function hintFromBillCategory(lines: string[]): CategoryKey | undefined {
   const billCategory = valueAfterLabels(lines, ['账单分类'], /(.+)/)
@@ -64,14 +55,15 @@ export const alipay: PaymentParser = {
   },
 
   parse(lines) {
-    const merchant = displayNameAboveAmount(lines)
+    const merchant = merchantAboveStandaloneAmount(lines, HEADER_NOISE_PATTERN)
       ?? valueAfterLabels(lines, ['收款方全称', '收款方'], /(.+)/)
     return {
       merchant,
       description: valueAfterLabels(lines, ['商品说明', '商品'], /(.+)/) ?? merchant,
       amount: bareAmountNearTop(lines) ?? amountAfterLabels(lines, ['金额', '合计']),
       date: dateAfterLabels(lines, ['创建时间', '支付时间', '付款时间']) ?? firstDateAnywhere(lines),
-      orderId: valueAfterLabels(lines, ['订单号', '商家订单号'], /([A-Za-z\d]{12,})/),
+      // 订单号 is a substring of 商家订单号, so one label covers both rows.
+      orderId: valueAfterLabels(lines, ['订单号'], /([A-Za-z\d]{12,})/),
       hintCategory: hintFromBillCategory(lines)
     }
   }

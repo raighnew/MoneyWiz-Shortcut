@@ -41,8 +41,8 @@ test('restaurants and delivery go to DiningOut', () => {
   assert.equal(categorize(payment('海底捞', '火锅')), 'DiningOut')
 })
 
-test('ride hailing goes to Transport', () => {
-  assert.equal(categorize(payment('滴滴出行', '快车')), 'Transport')
+test('ride hailing goes to PublicTransport', () => {
+  assert.equal(categorize(payment('滴滴出行', '快车')), 'PublicTransport')
 })
 
 test('unknown purchases fall back to Shopping', () => {
@@ -50,11 +50,11 @@ test('unknown purchases fall back to Shopping', () => {
 })
 
 test('platform hint is used when keywords do not match', () => {
-  assert.equal(categorize(payment('某商户', '订单', 'Transport')), 'Transport')
+  assert.equal(categorize(payment('某商户', '订单', 'PublicTransport')), 'PublicTransport')
 })
 
 test('keyword match beats the platform hint', () => {
-  assert.equal(categorize(payment('滴滴出行', '快车', 'Baby')), 'Transport')
+  assert.equal(categorize(payment('滴滴出行', '快车', 'Baby')), 'PublicTransport')
 })
 
 test('unmatched scan-to-pay bills default to Groceries', () => {

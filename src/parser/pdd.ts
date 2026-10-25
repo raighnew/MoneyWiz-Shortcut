@@ -3,9 +3,8 @@ import {
   scoreKeywords,
   amountAfterLabels,
   dateAfterLabels,
+  storefrontAndProductTitle,
   valueAfterLabels,
-  cleanMerchantName,
-  productTitleAfter,
   type WeightedKeyword
 } from './utils.ts'
 
@@ -30,11 +29,8 @@ export const pdd: PaymentParser = {
   },
 
   parse(lines) {
-    const foundIndex = lines.findIndex(line => MERCHANT_PATTERN.test(line))
-    const merchantIndex = foundIndex >= 0 ? foundIndex : 0
     return {
-      merchant: cleanMerchantName(lines[merchantIndex] ?? ''),
-      description: productTitleAfter(lines, merchantIndex, TITLE_STOP_PATTERN),
+      ...storefrontAndProductTitle(lines, MERCHANT_PATTERN, TITLE_STOP_PATTERN),
       amount: amountAfterLabels(lines, ['实付款', '实付', '合计']),
       // 下单时间 is when the money left; 拼单时间/成交时间 are group-buy
       // milestones that can land days later.

@@ -7,11 +7,11 @@
 // by each consumer ('im' flags in JS, '(?m)' + case-insensitive in Shortcuts).
 import {
   CATEGORY_KEYWORDS,
-  FALLBACK_CATEGORY,
+  FALLBACK_CATEGORY_KEY,
   PLATFORM_FALLBACK_CATEGORIES
 } from '../category/keywords.ts'
 import { config } from '../config.ts'
-import type { Platform } from '../types.ts'
+import type { CategoryKey, Platform } from '../types.ts'
 
 function escapeForRegex(literal: string): string {
   return literal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -76,20 +76,60 @@ export const MERCHANT_NOISE_PATTERN = '全球购|复制|[>›〉＞]'
 
 export interface KeywordRule {
   /** Category path written into the MoneyWiz URL (via encodeCategoryParam). */
-  value: string
+  categoryPath: string
   pattern: string
 }
 
 // First matching rule wins, mirroring src/category/index.ts priorities.
 export const CATEGORY_RULES: readonly KeywordRule[] = CATEGORY_KEYWORDS.map(([category, keywords]) => ({
-  value: config.categoryNames[category],
+  categoryPath: config.categoryNames[category],
   pattern: keywords.map(escapeForRegex).join('|')
 }))
 
-export const FALLBACK_CATEGORY_NAME: string = config.categoryNames.Shopping
+export const FALLBACK_CATEGORY_PATH: string = config.categoryNames.Shopping
+
+// --- AI category fallback (--ai build; iOS 26+ "Use Model" action) -----------
+// When no keyword rule matches, the on-device model is asked to answer with
+// one internal category key; the reply is validated against these choices and
+// anything unrecognized still falls back per platform. Patterns are lenient
+// word fragments (ICU-portable) because small models occasionally reply with
+// natural phrasings like "Public Transportation" or "Gas & Fuel".
+
+export const AI_CATEGORY_PROMPT_PREFIX: string =
+  'Categorize this Chinese payment or shopping bill from its OCR text. '
+  + 'Reply with EXACTLY one word from this list, nothing else: '
+  + 'Baby (母婴用品), Pet (宠物用品), Coffee (咖啡), GasFuel (加油/充电), '
+  + 'PublicTransport (打车/公共交通), Groceries (超市/生鲜/零食/便利店), '
+  + 'DiningOut (餐厅/外卖/奶茶), Shopping (其他购物或不确定).\n\nOCR text:\n'
+
+export interface AiCategoryChoice {
+  /** Key the model is told to answer with. */
+  key: CategoryKey
+  /** Lenient pattern validating the model's reply. */
+  pattern: string
+  /** Category path written into the MoneyWiz URL (via encodeCategoryParam). */
+  categoryPath: string
+}
+
+export const AI_CATEGORY_CHOICES: readonly AiCategoryChoice[] = ([
+  ['Baby', 'baby'],
+  ['Pet', 'pets?'],
+  ['Coffee', 'coffee'],
+  ['GasFuel', 'gas|fuel'],
+  ['PublicTransport', 'transport'],
+  ['Groceries', 'grocer'],
+  ['DiningOut', 'dining'],
+  ['Shopping', 'shopping']
+] as const).map(([key, pattern]) => ({
+  key,
+  pattern,
+  categoryPath: config.categoryNames[key]
+}))
 
 // Ordered by priority: storefronts before payment apps, so a PDD order paid
 // via WeChat still books to the PDD account.
+// Hand-synced with each parser's weighted KEYWORDS in src/parser/*.ts —
+// when adding a detection marker there, consider mirroring it here.
 // English UI markers included: Alipay's English screens say "Payment
 // success" / "Transaction successful" / "Payment time" (OCR splits "Payment
 // method" across two lines, so multi-word markers can't rely on it);
@@ -118,15 +158,15 @@ export interface PlatformRule {
   account: string
   payee: string
   /** Category when no keyword rule matches — see PLATFORM_FALLBACK_CATEGORIES. */
-  fallbackCategory: string
+  fallbackCategoryPath: string
   pattern: string
 }
 
 export const PLATFORM_RULES: readonly PlatformRule[] = PLATFORM_PATTERNS.map(([platform, pattern]) => ({
   account: config.accounts[platform] ?? config.accounts.default,
   payee: PLATFORM_PAYEES[platform],
-  fallbackCategory: config.categoryNames[
-    PLATFORM_FALLBACK_CATEGORIES[platform] ?? FALLBACK_CATEGORY
+  fallbackCategoryPath: config.categoryNames[
+    PLATFORM_FALLBACK_CATEGORIES[platform] ?? FALLBACK_CATEGORY_KEY
   ],
   pattern
 }))

@@ -28,7 +28,7 @@ export const CATEGORY_KEYWORDS: readonly (readonly [CategoryKey, readonly string
     '加油', '加油站', '中石化', '中石油', '汽油', '柴油', '壳牌',
     '充电桩', '特来电', '星星充电', '油费'
   ]],
-  ['Transport', [
+  ['PublicTransport', [
     '滴滴', '出行', '打车', '出租车', '网约车', '代驾', '顺风车',
     '地铁', '公交', '轻轨', '高铁', '火车票', '12306', '铁路',
     '机票', '航空', '航班', '值机', '停车', '高速费', '过路费',
@@ -53,4 +53,4 @@ export const PLATFORM_FALLBACK_CATEGORIES: Partial<Record<Platform, CategoryKey>
   alipay: 'Groceries'
 }
 
-export const FALLBACK_CATEGORY: CategoryKey = 'Shopping'
+export const FALLBACK_CATEGORY_KEY: CategoryKey = 'Shopping'

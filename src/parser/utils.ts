@@ -2,8 +2,17 @@ export type WeightedKeyword = readonly [keyword: string, weight: number]
 
 const DATE_PATTERN = /(\d{4})[-/.年](\d{1,2})[-/.月](\d{1,2})日?(?:[\s,，]*(\d{1,2}):(\d{2})(?::(\d{2}))?)?/
 const YUAN_AMOUNT_PATTERN = /[¥￥]\s*(\d[\d,]*(?:\.\d{1,2})?)/g
-// A line that is (almost) nothing but an amount, e.g. "-93.00" or "¥28.50".
-const BARE_AMOUNT_LINE_PATTERN = /^[-−–]?\s*[¥￥]?\s*(\d[\d,]*(?:\.\d{1,2})?)\s*元?$/
+// Lines that are (almost) nothing but an amount, e.g. "-93.00" or "¥28.50".
+// The lenient pattern is only safe right after a label like 实付款; standalone
+// detection requires a ¥ sign or two decimals so that a lone notification
+// badge digit ("3") never counts as an amount — mirrors src/pure/patterns.ts.
+const LABELED_BARE_AMOUNT_PATTERN = /^[-−–]?\s*[¥￥]?\s*(\d[\d,]*(?:\.\d{1,2})?)\s*元?$/
+const STANDALONE_AMOUNT_PATTERN = /^[-−–]?\s*(?:[¥￥]\s*(\d[\d,]*(?:\.\d{1,2})?)|(\d[\d,]*\.\d{2}))\s*元?$/
+
+export function standaloneAmountOnLine(line: string): number | null {
+  const match = line.match(STANDALONE_AMOUNT_PATTERN)
+  return match ? parseNumber((match[1] ?? match[2])!) : null
+}
 
 export function toLines(text: string): string[] {
   return String(text || '')
@@ -66,7 +75,7 @@ export function amountAfterLabels(
       for (const candidate of group) {
         const amount = lastYuanAmountIn(candidate)
         if (amount !== null) return amount
-        const bare = candidate.match(BARE_AMOUNT_LINE_PATTERN)
+        const bare = candidate.match(LABELED_BARE_AMOUNT_PATTERN)
         if (bare) return parseNumber(bare[1]!)
       }
     }
@@ -77,8 +86,21 @@ export function amountAfterLabels(
 // Bill detail pages (WeChat/Alipay) show the amount alone near the top.
 export function bareAmountNearTop(lines: string[], maxLinesToScan = 8): number | null {
   for (const line of lines.slice(0, maxLinesToScan)) {
-    const match = line.match(BARE_AMOUNT_LINE_PATTERN)
-    if (match) return parseNumber(match[1]!)
+    const amount = standaloneAmountOnLine(line)
+    if (amount !== null) return amount
+  }
+  return null
+}
+
+// The merchant display name sits directly above the big standalone amount on
+// WeChat/Alipay bill detail pages; header chrome lines are skipped.
+export function merchantAboveStandaloneAmount(
+  lines: string[],
+  headerNoisePattern: RegExp
+): string | null {
+  const amountIndex = lines.findIndex(line => standaloneAmountOnLine(line) !== null)
+  for (let i = amountIndex - 1; i >= 0; i--) {
+    if (!headerNoisePattern.test(lines[i]!)) return cleanMerchantName(lines[i]!)
   }
   return null
 }
@@ -141,7 +163,7 @@ export function cleanMerchantName(line: string): string {
 
 // Joins the product-title lines between the merchant row and the first
 // metadata row (quantity, SKU, price...).
-export function productTitleAfter(
+function productTitleAfter(
   lines: string[],
   merchantIndex: number,
   stopPattern: RegExp
@@ -154,6 +176,22 @@ export function productTitleAfter(
   }
   const title = titleLines.join(' ').trim()
   return title || null
+}
+
+// Marketplace order pages (JD/Taobao/PDD): the storefront row, then the
+// product-title lines below it. Falls back to the first line when no
+// storefront marker is found.
+export function storefrontAndProductTitle(
+  lines: string[],
+  storefrontPattern: RegExp,
+  titleStopPattern: RegExp
+): { merchant: string; description: string | null } {
+  const foundIndex = lines.findIndex(line => storefrontPattern.test(line))
+  const merchantIndex = foundIndex >= 0 ? foundIndex : 0
+  return {
+    merchant: cleanMerchantName(lines[merchantIndex] ?? ''),
+    description: productTitleAfter(lines, merchantIndex, titleStopPattern)
+  }
 }
 
 // Vision emits a detail table as two separate blocks — every label, then every

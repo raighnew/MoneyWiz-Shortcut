@@ -1,17 +1,20 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
+  AI_CATEGORY_CHOICES,
+  AI_CATEGORY_PROMPT_PREFIX,
   AMOUNT_PATTERNS,
   CATEGORY_RULES,
   DATE_PADDING_RULES,
   DATE_PATTERN,
   DATE_SEPARATOR_PATTERN,
   FALLBACK_ACCOUNT,
-  FALLBACK_CATEGORY_NAME,
+  FALLBACK_CATEGORY_PATH,
   MERCHANT_NOISE_PATTERN,
   MERCHANT_PATTERNS,
   PLATFORM_RULES
 } from '../src/pure/patterns.ts'
+import { config } from '../src/config.ts'
 import { loadFixture } from './helpers.ts'
 
 // Mirrors how the generated pure Shortcut evaluates the patterns:
@@ -50,7 +53,7 @@ function extractDate(text: string): string | null {
 }
 
 const pickCategory = (text: string) =>
-  CATEGORY_RULES.find(rule => new RegExp(rule.pattern, 'im').test(text))?.value ?? null
+  CATEGORY_RULES.find(rule => new RegExp(rule.pattern, 'im').test(text))?.categoryPath ?? null
 
 const pickPlatform = (text: string) =>
   PLATFORM_RULES.find(rule => new RegExp(rule.pattern, 'im').test(text)) ?? null
@@ -134,13 +137,13 @@ test('partial timestamps like JD delivery windows are ignored', () => {
 test('unrecognized text yields no amount and the fallbacks', () => {
   const unrelated = '今天天气不错，去公园散步。'
   assert.equal(extractAmount(unrelated), null)
-  assert.equal(pickCategory(unrelated) ?? FALLBACK_CATEGORY_NAME, 'Shopping')
+  assert.equal(pickCategory(unrelated) ?? FALLBACK_CATEGORY_PATH, 'Shopping')
   assert.equal(pickPlatform(unrelated), null)
 })
 
 test('the category fallback follows the detected platform', () => {
   const fallbackFor = (fixture: string) =>
-    pickPlatform(loadFixture(fixture))?.fallbackCategory ?? FALLBACK_CATEGORY_NAME
+    pickPlatform(loadFixture(fixture))?.fallbackCategoryPath ?? FALLBACK_CATEGORY_PATH
   assert.equal(fallbackFor('wechat-en-qr-transfer'), 'Shopping/Groceries')
   assert.equal(fallbackFor('alipay-en'), 'Shopping/Groceries')
   assert.equal(fallbackFor('jd-real'), 'Shopping')
@@ -151,4 +154,34 @@ test('WeChat slash dates are normalized and zero-padded', () => {
   assert.equal(extractDate('Payment\nTime\n2026/9/5 07:58:56'), '2026-09-05 07:58:56')
   // Already-padded ISO timestamps must pass through untouched.
   assert.equal(extractDate('支付时间 2026-07-09 17:56:58'), '2026-07-09 17:56:58')
+})
+
+// Mirrors the AI build's validation chain: first choice whose pattern matches
+// the model reply wins (case-insensitive, like Match Text).
+const pickAiChoice = (reply: string) =>
+  AI_CATEGORY_CHOICES.find(choice => new RegExp(choice.pattern, 'im').test(reply))?.key
+
+test('AI choices cover every configured category and the prompt names each key', () => {
+  assert.deepEqual(
+    [...AI_CATEGORY_CHOICES.map(choice => choice.key)].sort(),
+    Object.keys(config.categoryNames).sort()
+  )
+  for (const choice of AI_CATEGORY_CHOICES) {
+    assert.ok(AI_CATEGORY_PROMPT_PREFIX.includes(choice.key), `prompt lists ${choice.key}`)
+  }
+})
+
+test('an exact AI key reply validates to its own category', () => {
+  for (const choice of AI_CATEGORY_CHOICES) {
+    assert.equal(pickAiChoice(choice.key), choice.key)
+  }
+})
+
+test('AI reply validation tolerates natural phrasings and rejects garbage', () => {
+  assert.equal(pickAiChoice('Public Transportation'), 'PublicTransport')
+  assert.equal(pickAiChoice('Dining Out'), 'DiningOut')
+  assert.equal(pickAiChoice('Gas & Fuel'), 'GasFuel')
+  assert.equal(pickAiChoice('groceries'), 'Groceries')
+  assert.equal(pickAiChoice('这不是一个分类'), undefined)
+  assert.equal(pickAiChoice(''), undefined)
 })
