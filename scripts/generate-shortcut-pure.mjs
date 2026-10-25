@@ -53,6 +53,7 @@ import {
 import { encodeCategoryParam } from '../src/moneywiz/index.ts'
 
 const isAiBuild = process.argv.includes('--ai')
+const isDebugBuild = process.argv.includes('--debug')
 
 const nextUuid = uuidSequence()
 const actions = []
@@ -220,9 +221,15 @@ function pushAiCategoryFallback() {
     WFGenerativeResultType: 'Text',
     WFLLMPrompt: tokenText([AI_CATEGORY_PROMPT_PREFIX, ocrText])
   }, 'Response')
+  if (isDebugBuild) pushSetVariable('AiReply', reply)
   pushFirstMatchChain(AI_CATEGORY_CHOICES, choice => choice.pattern, (choice) => {
     pushSetVariableToText('Category', [encodeCategoryParam(choice.categoryPath)])
   }, () => pushSetVariableToText('Category', [variableNamed('FallbackCategory')]), reply)
+}
+
+// The debug build reports whether the model was consulted at all.
+if (isAiBuild && isDebugBuild) {
+  pushSetVariableToText('AiReply', ['（未调用模型——命中了关键词规则）'])
 }
 
 pushFirstMatchChain(CATEGORY_RULES, rule => rule.pattern, (rule) => {
@@ -250,12 +257,11 @@ const url = pushText([
 
 // --debug: show + copy the assembled URL instead of opening MoneyWiz, so a
 // misbehaving field can be pinpointed on-device.
-const isDebugBuild = process.argv.includes('--debug')
 if (isDebugBuild) {
   push(action('is.workflow.actions.setclipboard', { WFInput: tokenText([url]) }))
-  push(action('is.workflow.actions.showresult', {
-    Text: tokenText(['URL（已复制到剪贴板）：\n\n', url])
-  }))
+  const reportParts = ['URL（已复制到剪贴板）：\n\n', url]
+  if (isAiBuild) reportParts.push('\n\nAI 分类回复：', variableNamed('AiReply'))
+  push(action('is.workflow.actions.showresult', { Text: tokenText(reportParts) }))
 } else {
   push(action('is.workflow.actions.openurl', { WFInput: attachment(url) }))
 }
