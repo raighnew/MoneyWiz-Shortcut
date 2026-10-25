@@ -103,7 +103,7 @@ export const FALLBACK_CATEGORY_PATH: string = config.categoryNames.Shopping
 export const AI_CATEGORY_PROMPT_PREFIX: string =
   'Categorize this Chinese payment or shopping bill from its OCR text. '
   + 'Reply with EXACTLY one word from this list, nothing else: '
-  + 'Baby (母婴用品), Pet (宠物用品), Coffee (咖啡), GasFuel (加油/充电), '
+  + 'Baby (母婴用品), Pets (宠物用品), Coffee (咖啡), GasFuel (加油/充电), '
   + 'PublicTransport (打车/公共交通), Groceries (超市/生鲜/零食/便利店), '
   + 'DiningOut (餐厅/外卖/奶茶), Shopping (其他购物或不确定).\n\nOCR text:\n'
 
@@ -118,7 +118,7 @@ export interface AiCategoryChoice {
 
 export const AI_CATEGORY_CHOICES: readonly AiCategoryChoice[] = ([
   ['Baby', 'baby'],
-  ['Pet', 'pets?'],
+  ['Pets', 'pets?'],
   ['Coffee', 'coffee'],
   ['GasFuel', 'gas|fuel'],
   ['PublicTransport', 'transport'],

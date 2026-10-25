@@ -38,7 +38,7 @@ export const config: Config = {
   // the subcategory by hand on the review screen (save=false).
   categoryNames: {
     Baby: 'Shopping/Baby',
-    Pet: 'Shopping/Pets',
+    Pets: 'Shopping/Pets',
     Coffee: 'Food & Dining/Coffee',
     GasFuel: 'Transportation/GasFuel',
     PublicTransport: 'Transportation/Public Transportation',

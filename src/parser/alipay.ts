@@ -27,7 +27,7 @@ const HEADER_NOISE_PATTERN = /^(账单详情|账单|详情|返回|完成)$/
 const BILL_CATEGORY_HINTS: readonly (readonly [string, CategoryKey])[] = [
   ['母婴', 'Baby'],
   ['亲子', 'Baby'],
-  ['宠物', 'Pet'],
+  ['宠物', 'Pets'],
   ['餐饮', 'DiningOut'],
   ['美食', 'DiningOut'],
   ['生鲜', 'Groceries'],

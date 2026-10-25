@@ -2,7 +2,7 @@ export type Platform = 'jd' | 'taobao' | 'pdd' | 'wechat' | 'alipay'
 
 export type CategoryKey =
   | 'Baby'
-  | 'Pet'
+  | 'Pets'
   | 'Coffee'
   | 'GasFuel'
   | 'PublicTransport'

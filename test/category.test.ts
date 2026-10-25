@@ -16,9 +16,9 @@ test('brand keywords match case-insensitively', () => {
   assert.equal(categorize(payment('店', 'MOONY air fit NB码')), 'Baby')
 })
 
-test('pet supplies go to Pet', () => {
-  assert.equal(categorize(payment('宠物旗舰店', '猫粮 10kg')), 'Pet')
-  assert.equal(categorize(payment('某店', '豆腐猫砂 6L')), 'Pet')
+test('pet supplies go to Pets', () => {
+  assert.equal(categorize(payment('宠物旗舰店', '猫粮 10kg')), 'Pets')
+  assert.equal(categorize(payment('某店', '豆腐猫砂 6L')), 'Pets')
 })
 
 test('coffee shops and drinks go to Coffee', () => {
