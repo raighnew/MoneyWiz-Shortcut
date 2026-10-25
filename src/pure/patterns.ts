@@ -28,6 +28,11 @@ function escapeForRegex(literal: string): string {
 // - OCR misreads: 合计 arrives as 合汁, 共减 as 共減 — hence 合[计汁].
 // - A notification badge like a lone "3" must NEVER count as an amount, so
 //   the bare-line fallbacks require a ¥ sign or two decimals.
+// Applied (regex replace with '') to the OCR text BEFORE the amount patterns
+// run: OCR can emit the 共减¥6.5 discount on its own line, where the
+// end-of-line heuristics below would book it instead of the 合计 total.
+export const DISCOUNT_STRIP_PATTERN: string = '共[减減]\\s*[¥￥]\\s*[0-9][0-9,]*(?:\\.[0-9]{1,2})?'
+
 export const AMOUNT_PATTERNS: readonly string[] = [
   '实付款?[\\s\\S]{0,120}?[¥￥]\\s*([0-9][0-9,]*(?:\\.[0-9]{1,2})?)(?=[^0-9\\n]*$)',
   '实付款?[^\\n]*?([0-9][0-9,]*(?:\\.[0-9]{1,2})?)(?=[^0-9\\n]*$)',

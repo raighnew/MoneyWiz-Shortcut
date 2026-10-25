@@ -8,6 +8,7 @@ import {
   DATE_PADDING_RULES,
   DATE_PATTERN,
   DATE_SEPARATOR_PATTERN,
+  DISCOUNT_STRIP_PATTERN,
   FALLBACK_ACCOUNT,
   FALLBACK_CATEGORY_PATH,
   MERCHANT_NOISE_PATTERN,
@@ -24,9 +25,11 @@ function firstMatch(pattern: string, text: string): string | null {
   return match ? (match[1] ?? match[0]) : null
 }
 
+// Mirrors the generator: discount fragments are stripped before matching.
 function extractAmount(text: string): string | null {
+  const withoutDiscounts = text.replace(new RegExp(DISCOUNT_STRIP_PATTERN, 'gi'), '')
   for (const pattern of AMOUNT_PATTERNS) {
-    const value = firstMatch(pattern, text)
+    const value = firstMatch(pattern, withoutDiscounts)
     if (value) return value.replace(/,/g, '')
   }
   return null
@@ -117,6 +120,13 @@ test('实付 value split onto the next OCR line is still found', () => {
 
 test('column-split OCR with 合计 misread as 合汁 still finds 实付款 amount', () => {
   assert.equal(extractAmount('实付款\n订单编号\n支付方式\n支付时间\n共減¥24合汁¥93>'), '93')
+})
+
+test('a discount on its own OCR line is never the amount', () => {
+  // Real JD bug: 共减¥6.5 arrived on a separate line and ended that line,
+  // so the end-of-line heuristic booked the discount instead of 合计¥9.4.
+  assert.equal(extractAmount('实付款\n共减¥6.5\n合计 ¥9.4'), '9.4')
+  assert.equal(extractAmount('到手¥9.4\n实付款\n订单编号\n共减 ¥6.5\n合计¥9.4 >'), '9.4')
 })
 
 test('a lone notification badge digit is never an amount', () => {

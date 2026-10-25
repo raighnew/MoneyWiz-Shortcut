@@ -131,6 +131,24 @@ test('a PDD order paid via WeChat is still detected as PDD', () => {
   assert.equal(payment.platform, 'pdd')
 })
 
+test('JD: a discount on its own OCR line is never the amount', () => {
+  const payment = parsePayment([
+    '水卫士（seaways）京东自营旗舰店',
+    '水卫士洗碗机漂洗剂',
+    '到手¥9.4',
+    '实付款',
+    '订单编号',
+    '交易快照',
+    '支付方式',
+    '共减 ¥6.5',
+    '合计 ¥9.4',
+    '支付时间 2026-10-17 14:46:20'
+  ].join('\n'))
+  assert.ok(payment)
+  assert.equal(payment.platform, 'jd')
+  assert.equal(payment.amount, 9.4)
+})
+
 test('a lone notification badge digit near the top is never the amount', () => {
   const payment = parsePayment([
     '账单详情',

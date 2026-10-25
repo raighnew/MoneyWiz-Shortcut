@@ -43,6 +43,7 @@ import {
   DATE_PADDING_RULES,
   DATE_SEPARATOR_PATTERN,
   DATE_PATTERN,
+  DISCOUNT_STRIP_PATTERN,
   FALLBACK_ACCOUNT,
   FALLBACK_CATEGORY_PATH,
   MERCHANT_NOISE_PATTERN,
@@ -134,6 +135,16 @@ const ocrText = pushOutput('is.workflow.actions.extracttextfromimage', {
 
 // --- 2. Amount: 实付 → 合计 → split 实付 → 价格/付款/金额 → bare line ----------
 // No prompt on failure: the amount stays empty and is typed in MoneyWiz.
+// Discount fragments (共减¥6.5) are stripped first so a discount on its own
+// OCR line can never be booked as the paid amount.
+
+const amountSubject = pushOutput('is.workflow.actions.text.replace', {
+  WFReplaceTextFind: DISCOUNT_STRIP_PATTERN,
+  WFReplaceTextReplace: '',
+  WFReplaceTextCaseSensitive: false,
+  WFReplaceTextRegularExpression: true,
+  WFInput: tokenText([ocrText])
+}, 'Updated Text')
 
 pushFirstMatchChain(AMOUNT_PATTERNS, pattern => pattern, (_pattern, matches) => {
   const captured = pushFirstItem(pushCaptureGroup(matches))
@@ -145,7 +156,7 @@ pushFirstMatchChain(AMOUNT_PATTERNS, pattern => pattern, (_pattern, matches) => 
     WFInput: tokenText([captured])
   }, 'Updated Text')
   pushSetVariable('Amount', withoutThousandsSeparators)
-}, () => pushSetVariableToText('Amount', ['']))
+}, () => pushSetVariableToText('Amount', ['']), amountSubject)
 
 // --- 3. Date (optional URL segment) --------------------------------------------
 

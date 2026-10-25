@@ -65,6 +65,12 @@ function candidatesAfterLabel(
   return candidateGroups
 }
 
+// JD prints the paid row as "实付款 共减¥6.5 合计¥9.4". On one OCR line the
+// last-¥-amount rule books the 合计 total, but OCR sometimes puts the
+// discount on its own line, where the first line with any amount would book
+// ¥6.5 — so discount fragments are removed before extraction (減 = misread).
+const DISCOUNT_FRAGMENT_PATTERN = /共[减減]\s*[¥￥]\s*\d[\d,]*(?:\.\d{1,2})?/g
+
 export function amountAfterLabels(
   lines: string[],
   labels: readonly string[],
@@ -73,9 +79,10 @@ export function amountAfterLabels(
   for (const label of labels) {
     for (const group of candidatesAfterLabel(lines, label, lookaheadLines)) {
       for (const candidate of group) {
-        const amount = lastYuanAmountIn(candidate)
+        const withoutDiscounts = candidate.replace(DISCOUNT_FRAGMENT_PATTERN, '')
+        const amount = lastYuanAmountIn(withoutDiscounts)
         if (amount !== null) return amount
-        const bare = candidate.match(LABELED_BARE_AMOUNT_PATTERN)
+        const bare = withoutDiscounts.match(LABELED_BARE_AMOUNT_PATTERN)
         if (bare) return parseNumber(bare[1]!)
       }
     }
